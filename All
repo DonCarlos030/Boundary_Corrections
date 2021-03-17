@@ -1,0 +1,142 @@
+% VOORDAT JE DE BC TOEPAST MOET JE ZORGEN DAT DE VARIABELEN HIERBOVEN
+% ALLEMAAL GOED GESORT ZIJN (DUS VAN ALPHA IS -4 TOT 12)
+
+% the data corrected for the boundary corrections in aoa, cl, cd, cmp25c
+% output_data_uncorrected = [AoA, CL, CD, CMp25c];
+% output_data_cor = Boundary_corrections(CL,CD,AoA,FX_propon,FX_propoff,AoA_propoff,V,rho,CMp25c,input_V,input_n);
+
+%% Define the boundary corrections
+function [output_data_cor] = Boundary_corrections(CL,CD,AoA,FX_propon,FX_propoff,AoA_propoff,V,rho,CMp25c,input_V,input_n) 
+    %% solid blockage
+    K_1_wing = 1.02;        % body shape factor wing 
+    K_1_ht = 1.02;          % body shape factor horizontal tail 
+    K_1_vt = 1.03;          % body shape factor vertical tail 
+    K_3_f = 0.91;             % body shape factor fuselage
+    K_3_n = 0.91;             % body shape factor nacelle
+
+    tau_1 = 0.87;
+    
+    C = 2.06;               % cross sectional area of the wind tunnel in m^2
+    V_wing = 0.0030229;     % volume of the wing in m^3
+    V_n = 2 * (pi*(0.28*0.2032/2)^2 * 0.345) ; % volume of the nacelles in m^3
+    V_ht = 0.0024485 - V_n;       % volume of the horizontal tail in m^3 without nacelles
+    V_vt = 0.0003546;       % volume of the vertical tail in m^3
+    V_f = 0.0160632;   % volume of the fuselage excluding the struts 
+
+    % ook correct for the struts ??
+
+    epsilon_sb_w = K_1_wing * tau_1 * V_wing  / C^1.5; 
+    epsilon_sb_f = K_3_f * tau_1 * V_f  / C^1.5;
+    epsilon_sb_n = K_3_n * tau_1 * V_n  / C^1.5;
+    epsilon_sb_ht = K_1_ht * tau_1 * V_ht  / C^1.5; 
+    epsilon_sb_vt = K_1_vt * tau_1 * V_vt  / C^1.5;
+
+    epsilon_sb_t = epsilon_sb_w + epsilon_sb_f + epsilon_sb_ht + epsilon_sb_vt + epsilon_sb_n;
+
+    %% wake blockage 
+
+    CD_i_curve = polyfit(CL(1:4).^2,CD(1:4),1); 
+    CD_i = CD_i_curve(1) * CL.^2 + CD_i_curve(2);
+
+    CD_0 = CD_i_curve(2);            
+
+    S_wing = 0.2172;            % reference area wing
+%     S_fuselage =  pi * 0.07^2;  % reference area fuselage
+%     S_htail = 0.0858;           % reference area horizontal tail
+%     S_vtail = 0.0415;           % reference area vertical tail
+%     S_total = S_wing + S_fuselage + S_htail + S_vtail;  % model reference area
+
+    epsilon_wb_0 = S_wing * CD_0 / (4 * C);
+
+    % only use the stall correction for the aoa of 12 
+    epsilon_wb_s = 5 * S_wing * (CD - CD_0 - CD_i) / (4 * C) .* [0 0 0 0 1]' ; 
+    epsilon_wb_t = epsilon_wb_0 + epsilon_wb_s;
+
+    %% Lift interference
+
+    %tail off data: CL CD CM25c (for aoa -4,0,4,8,12)
+    Tailoff_V20 = [-0.0618,	0.0524,	-0.2032;
+                    0.3036,	0.0526,	-0.1439;
+                    0.6622,	0.0630,	-0.0835;
+                    0.9689,	0.0832,	-0.0225;
+                    1.0945,	0.1325,	0.0120];
+
+    Tailoff_V30 = [-0.0795,	0.0494,	-0.1922;
+                    0.2967,	0.0508,	-0.1379;
+                    0.6602,	0.0607,	-0.0791;
+                    0.9590,	0.0812,	-0.0195;
+                    1.0866,	0.1324,	0.0124];
+
+    Tailoff_V40 = [-0.0847,	0.0483,	-0.1888;
+                    0.2988,	0.0484,	-0.1350;
+                    0.6595,	0.0588,	-0.0761;
+                    0.9542,	0.0791,	-0.0169;
+                    1.0766,	0.1309,	0.0141];
+
+    if input_V == 40
+        CL_w = Tailoff_V40(:,1);
+        CD_w = Tailoff_V40(:,2);
+        CM25c_w = Tailoff_V40(:,3);
+    end
+
+    if input_V ==30
+        CL_w = Tailoff_V30(:,1);
+        CD_w = Tailoff_V30(:,2);
+        CM25c_w = Tailoff_V30(:,3);
+    end
+
+    if input_V ==20
+        CL_w = Tailoff_V20(:,1);
+        CD_w = Tailoff_V20(:,2);
+        CM25c_w = Tailoff_V20(:,3);
+    end
+
+    delta = 0.117;
+
+    CL_alpha_curve = polyfit(AoA,CL_w,1);  
+    CL_alpha = CL_alpha_curve(1)  ;
+
+    tau_2 = 0.15;            % eliptic tunnel  
+
+    delta_AoA_uw = delta * S_wing * CL_w / C;
+    delta_AoA_sc = tau_2 * delta_AoA_uw;
+    delta_CD_w = delta * S_wing * CL_w.^2 / C;
+    delta_CMp25c = delta_AoA_sc * CL_alpha / 8;
+
+    %% Downwash corrections at tailplane
+
+    tau_2_tail = 0.8;
+    delta_AoA_tail = delta * S_wing / C * CL_w * (1 + tau_2_tail);
+    cmp25c_alpha_tail = 0.122385;
+    delta_CMp25c_tailplane = cmp25c_alpha_tail * delta_AoA_tail;
+    
+    %% Slipstream interference
+
+    D_p = 0.2032;           % diameter of the propeller
+    S_p = pi * D_p^2 /4;    % area of the propeller
+    
+    % op dit moment kan dit alleen voor V = 40 m/s want we hebben geen prop off
+    % metingen voor V = 30 en V = 20 gedaan. Moet nog kijken of er een manier
+    % is om de thrust te bepalen voor die velocities 
+
+    T = (FX_propon - FX_propoff)*-1 ;       % multiply by -1 due to the definition of the external balance axis  
+    T_c = T ./ (rho .* V.^2 * S_p); 
+
+    epsilon_ss = T_c * S_p ./ ( C * 2 * sqrt(1+2*T_c)); 
+
+    %% Final calculations 
+
+    epsilon_total = epsilon_sb_t + epsilon_wb_t + epsilon_ss
+    V = V.*(1 + epsilon_total);
+
+    CL = CL.*(1 + epsilon_total).^-2;
+    CD = CD.*(1 + epsilon_total).^-2;
+    CMp25c = CMp25c.*(1 + epsilon_total).^-2;
+
+    AoA_cor = AoA + delta_AoA_uw + delta_AoA_sc;
+    CL_cor = CL;
+    CD_cor = CD + delta_CD_w;
+    CMp25c_cor = CMp25c + delta_CMp25c + delta_CMp25c_tailplane;
+
+    output_data_cor = [AoA_cor, CL_cor, CD_cor, CMp25c_cor]; 
+end
