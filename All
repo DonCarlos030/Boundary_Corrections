@@ -7,31 +7,50 @@
 
 %% Define the boundary corrections
 function [output_data_cor] = Boundary_corrections(CL,CD,AoA,FX_propon,FX_propoff,AoA_propoff,V,rho,CMp25c,input_V,input_n) 
+    %% Model off data 
+    % before applying the boundary corrections first the model off data has
+    % to be substracted to get the data from the model itself
+    
+    Modeloff_V40 = [0.0196, 0.0068;
+                    0.0162,	0.0080;
+                    0.0087,	0.0082;
+                    0.0067,	0.0046;
+                    0.0169,	0.0091];
+
+    if input_V == 40
+        CL = CL - Modeloff_V40(:,1);
+        CD = CD - Modeloff_V40(:,2);
+    end
+   
     %% solid blockage
     K_1_wing = 1.02;        % body shape factor wing 
     K_1_ht = 1.02;          % body shape factor horizontal tail 
     K_1_vt = 1.03;          % body shape factor vertical tail 
-    K_3_f = 0.91;             % body shape factor fuselage
-    K_3_n = 0.91;             % body shape factor nacelle
-
-    tau_1 = 0.87;
+    K_3_f = 0.91;           % body shape factor fuselage
+    K_3_n = 0.91;           % body shape factor nacelle
+    K_1_ast = 0.94;         % body shape factor of the aft strut 
+    K_1_wst = 1.14;         % body shape factor of the wind strut
+    
+    tau_1 = 0.87;       % approximate values for all the model components
     
     C = 2.06;               % cross sectional area of the wind tunnel in m^2
-    V_wing = 0.0030229;     % volume of the wing in m^3
-    V_n = 2 * (pi*(0.28*0.2032/2)^2 * 0.345) ; % volume of the nacelles in m^3
-    V_ht = 0.0024485 - V_n;       % volume of the horizontal tail in m^3 without nacelles
-    V_vt = 0.0003546;       % volume of the vertical tail in m^3
-    V_f = 0.0160632;   % volume of the fuselage excluding the struts 
-
-    % ook correct for the struts ??
-
-    epsilon_sb_w = K_1_wing * tau_1 * V_wing  / C^1.5; 
+    V_wing = 0.0030229;                         % volume of the wing in m^3
+    V_n = 2 * (pi*(0.28*0.2032/2)^2 * 0.345) ;  % volume of the nacelles in m^3
+    V_ht = 0.0024485 - V_n;                     % volume of the horizontal tail in m^3 without nacelles
+    V_vt = 0.0003546;                           % volume of the vertical tail in m^3
+    V_f = 0.0160632;                            % volume of the fuselage excluding the struts in m^3
+    V_ast = 0.0004491;                          % volume of the aft strut in m^3
+    V_wst = 0.0035296 ;                         % volume of both wing struts together in m^3 
+    
+    epsilon_sb_w = K_1_wing * tau_1 * V_wing  / C^1.5;
     epsilon_sb_f = K_3_f * tau_1 * V_f  / C^1.5;
     epsilon_sb_n = K_3_n * tau_1 * V_n  / C^1.5;
-    epsilon_sb_ht = K_1_ht * tau_1 * V_ht  / C^1.5; 
+    epsilon_sb_ht = K_1_ht * tau_1 * V_ht  / C^1.5 ;
     epsilon_sb_vt = K_1_vt * tau_1 * V_vt  / C^1.5;
-
-    epsilon_sb_t = epsilon_sb_w + epsilon_sb_f + epsilon_sb_ht + epsilon_sb_vt + epsilon_sb_n;
+    epsilon_sb_ast = K_1_ast * tau_1 * V_ast  / C^1.5 ;
+    epsilon_sb_wst = K_1_wst * tau_1 * V_wst  / C^1.5;
+       
+    epsilon_sb_t = epsilon_sb_w + epsilon_sb_f + epsilon_sb_ht + epsilon_sb_vt + epsilon_sb_n + epsilon_sb_ast + epsilon_sb_wst;
 
     %% wake blockage 
 
@@ -119,14 +138,14 @@ function [output_data_cor] = Boundary_corrections(CL,CD,AoA,FX_propon,FX_propoff
     % metingen voor V = 30 en V = 20 gedaan. Moet nog kijken of er een manier
     % is om de thrust te bepalen voor die velocities 
 
-    T = (FX_propon - FX_propoff)*-1 ;       % multiply by -1 due to the definition of the external balance axis  
+    T = (FX_propon - FX_propoff)*-1;        % multiply by -1 due to the definition of the external balance axis  
     T_c = T ./ (rho .* V.^2 * S_p); 
 
     epsilon_ss = T_c * S_p ./ ( C * 2 * sqrt(1+2*T_c)); 
 
     %% Final calculations 
 
-    epsilon_total = epsilon_sb_t + epsilon_wb_t + epsilon_ss
+    epsilon_total = epsilon_sb_t + epsilon_wb_t + epsilon_ss;
     V = V.*(1 + epsilon_total);
 
     CL = CL.*(1 + epsilon_total).^-2;
