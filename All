@@ -28,7 +28,7 @@ function [output_data_cor] = Boundary_corrections(CL,CD,AoA,FX_propon,FX_propoff
     K_1_vt = 1.03;          % body shape factor vertical tail 
     K_3_f = 0.91;           % body shape factor fuselage
     K_3_n = 0.91;           % body shape factor nacelle
-    K_1_ast = 0.94;         % body shape factor of the aft strut 
+    K_1_ast = 1.08;         % body shape factor of the aft strut 
     K_1_wst = 1.14;         % body shape factor of the wind strut
     
     tau_1 = 0.87;       % approximate values for all the model components
