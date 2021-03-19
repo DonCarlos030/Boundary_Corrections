@@ -23,15 +23,21 @@ function [output_data_cor] = Boundary_corrections(CL,CD,AoA,FX_propon,FX_propoff
     end
    
     %% solid blockage
-    K_1_wing = 1.02;        % body shape factor wing 
+    K_1_wing = 1.03;        % body shape factor wing 
     K_1_ht = 1.02;          % body shape factor horizontal tail 
     K_1_vt = 1.03;          % body shape factor vertical tail 
     K_3_f = 0.91;           % body shape factor fuselage
-    K_3_n = 0.91;           % body shape factor nacelle
-    K_1_ast = 1.08;         % body shape factor of the aft strut 
-    K_1_wst = 1.14;         % body shape factor of the wind strut
-    
-    tau_1 = 0.87;       % approximate values for all the model components
+    K_3_n = 0.93;           % body shape factor nacelle
+    K_1_ast = 1.08;         % body shape factor aft strut 
+    K_1_wst = 1.14;         % body shape factor wing strut
+
+    tau_1_wing = 0.875;     % tunnel/model factor wing
+    tau_1_ht = 0.867;       % tunnel/model factor horizontal tail 
+    tau_1_vt = 0.867;       % tunnel/model factor vertical tail
+    tau_1_f = 0.856;        % tunnel/model factor fuselage
+    tau_1_n = 0.856;        % tunnel/model factor nacelle
+    tau_1_ast = 0.87;       % tunnel/model factor aft strut 
+    tau_1_wst = 0.87;       % tunnel/model factor wing strut
     
     C = 2.06;               % cross sectional area of the wind tunnel in m^2
     V_wing = 0.0030229;                         % volume of the wing in m^3
@@ -42,13 +48,13 @@ function [output_data_cor] = Boundary_corrections(CL,CD,AoA,FX_propon,FX_propoff
     V_ast = 0.0004491;                          % volume of the aft strut in m^3
     V_wst = 0.0035296 ;                         % volume of both wing struts together in m^3 
     
-    epsilon_sb_w = K_1_wing * tau_1 * V_wing  / C^1.5;
-    epsilon_sb_f = K_3_f * tau_1 * V_f  / C^1.5;
-    epsilon_sb_n = K_3_n * tau_1 * V_n  / C^1.5;
-    epsilon_sb_ht = K_1_ht * tau_1 * V_ht  / C^1.5 ;
-    epsilon_sb_vt = K_1_vt * tau_1 * V_vt  / C^1.5;
-    epsilon_sb_ast = K_1_ast * tau_1 * V_ast  / C^1.5 ;
-    epsilon_sb_wst = K_1_wst * tau_1 * V_wst  / C^1.5;
+    epsilon_sb_w = K_1_wing * tau_1_wing * V_wing  / C^1.5;
+    epsilon_sb_ht = K_1_ht * tau_1_ht * V_ht  / C^1.5 ;
+    epsilon_sb_vt = K_1_vt * tau_1_vt * V_vt  / C^1.5;
+    epsilon_sb_f = K_3_f * tau_1_f * V_f  / C^1.5;
+    epsilon_sb_n = K_3_n * tau_1_n * V_n  / C^1.5;
+    epsilon_sb_ast = K_1_ast * tau_1_ast * V_ast  / C^1.5 ;
+    epsilon_sb_wst = K_1_wst * tau_1_wst * V_wst  / C^1.5;
        
     epsilon_sb_t = epsilon_sb_w + epsilon_sb_f + epsilon_sb_ht + epsilon_sb_vt + epsilon_sb_n + epsilon_sb_ast + epsilon_sb_wst;
 
