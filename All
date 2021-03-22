@@ -111,7 +111,7 @@ function [output_data_cor] = Boundary_corrections(CL,CD,AoA,FX_propon,FX_propoff
         CM25c_w = Tailoff_V20(:,3);
     end
 
-    delta = 0.117;
+    delta = 0.107;
 
     CL_alpha_curve = polyfit(AoA,CL_w,1);  
     CL_alpha = CL_alpha_curve(1)  ;
