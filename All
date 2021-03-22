@@ -61,20 +61,15 @@ function [output_data_cor] = Boundary_corrections(CL,CD,AoA,FX_propon,FX_propoff
     %% wake blockage 
 
     CD_i_curve = polyfit(CL(1:4).^2,CD(1:4),1); 
-    CD_i = CD_i_curve(1) * CL.^2 + CD_i_curve(2);
+    CD_i = CD_i_curve(1) * CL.^2; 
 
     CD_0 = CD_i_curve(2);            
 
     S_wing = 0.2172;            % reference area wing
-%     S_fuselage =  pi * 0.07^2;  % reference area fuselage
-%     S_htail = 0.0858;           % reference area horizontal tail
-%     S_vtail = 0.0415;           % reference area vertical tail
-%     S_total = S_wing + S_fuselage + S_htail + S_vtail;  % model reference area
-
     epsilon_wb_0 = S_wing * CD_0 / (4 * C);
 
     % only use the stall correction for the aoa of 12 
-    epsilon_wb_s = 5 * S_wing * (CD - CD_0 - CD_i) / (4 * C) .* [0 0 0 0 1]' ; 
+    epsilon_wb_s = 5 * S_wing * (CD - CD_0 - CD_i) / (4 * C) .* [0 0 0 0 1]';  
     epsilon_wb_t = epsilon_wb_0 + epsilon_wb_s;
 
     %% Lift interference
@@ -144,7 +139,7 @@ function [output_data_cor] = Boundary_corrections(CL,CD,AoA,FX_propon,FX_propoff
     % metingen voor V = 30 en V = 20 gedaan. Moet nog kijken of er een manier
     % is om de thrust te bepalen voor die velocities 
 
-    T = (FX_propon - FX_propoff)*-1;        % multiply by -1 due to the definition of the external balance axis  
+    T = (FX_propon - FX_propoff)*-1        % multiply by -1 due to the definition of the external balance axis  
     T_c = T ./ (rho .* V.^2 * S_p); 
 
     epsilon_ss = T_c * S_p ./ ( C * 2 * sqrt(1+2*T_c)); 
