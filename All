@@ -124,10 +124,12 @@ function [output_data_cor] = Boundary_corrections(CL,CD,AoA,FX_propon,FX_propoff
     delta_CMp25c = delta_AoA_sc * CL_alpha / 8;
 
     %% Downwash corrections at tailplane
-
+    
     tau_2_tail = 0.8;
     delta_AoA_tail = delta * S_wing / C * CL_w * (1 + tau_2_tail);
-    cmp25c_alpha_tail = 0.122385;
+    MAC_tail = 0.149;
+    Tail_arm = 0.535;
+    cmp25c_alpha_tail = 0.122385*Tail_arm/MAC_tail;
     delta_CMp25c_tailplane = cmp25c_alpha_tail * delta_AoA_tail;
     
     %% Slipstream interference
