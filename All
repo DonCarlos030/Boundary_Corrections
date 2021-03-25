@@ -36,8 +36,8 @@ function [output_data_cor] = Boundary_corrections(CL,CD,AoA,FX_propon,FX_propoff
     tau_1_vt = 0.867;       % tunnel/model factor vertical tail
     tau_1_f = 0.856;        % tunnel/model factor fuselage
     tau_1_n = 0.856;        % tunnel/model factor nacelle
-    tau_1_ast = 0.87;       % tunnel/model factor aft strut 
-    tau_1_wst = 0.87;       % tunnel/model factor wing strut
+    tau_1_ast = 0.89;       % tunnel/model factor aft strut 
+    tau_1_wst = 0.89;       % tunnel/model factor wing strut
     
     C = 2.06;               % cross sectional area of the wind tunnel in m^2
     V_wing = 0.0030229;                         % volume of the wing in m^3
