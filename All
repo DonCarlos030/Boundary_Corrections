@@ -125,10 +125,12 @@ function [output_data_cor] = Boundary_corrections(CL,CD,AoA,FX_propon,FX_propoff
 
     %% Downwash corrections at tailplane
 
+    % checken of dit nog klopt 
+    
     tau_2_tail = 0.8;
-    delta_AoA_tail = delta * S_wing / C * CL_w * (1 + tau_2_tail);
-    cmp25c_alpha_tail = 0.122385;
-    delta_CMp25c_tailplane = cmp25c_alpha_tail * delta_AoA_tail;
+    delta_AoA_tail = delta * S_wing / C * CL_w * (1 + tau_2_tail)
+    cmp25c_alpha_tail = 0.122385*0.535/0.165;   %(dCL_t/dalpha)  * tail arm / MAC_wing
+    delta_CMp25c_tailplane = cmp25c_alpha_tail * delta_AoA_tail
     
     %% Slipstream interference
 
@@ -136,8 +138,8 @@ function [output_data_cor] = Boundary_corrections(CL,CD,AoA,FX_propon,FX_propoff
     S_p = pi * D_p^2 /4;    % area of the propeller
 
     T = (FX_propon - FX_propoff)*-1;        % Thrust  
-    T_c = T ./ (rho .* V.^2 * S_p) ;
-
+    T_c = T ./ (rho .* V.^2 * S_p); 
+    
     epsilon_ss = T_c * S_p ./ ( C * 2 * sqrt(1+2*T_c));
 
     %% Final calculations 
